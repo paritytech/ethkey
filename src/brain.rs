@@ -2,11 +2,11 @@ use tiny_keccak::Keccak;
 use super::{KeyPair, Error, Generator};
 
 /// Simple brainwallet.
-pub struct Brain(Vec<String>);
+pub struct Brain(String);
 
 impl Generator for Brain {
 	fn generate(self) -> Result<KeyPair, Error> {
-		let seed = self.0.join(" ");
+		let seed = self.0;
 		let data: Vec<u8> = seed.bytes().collect();
 
 		let mut keccak = Keccak::new_keccak256();
@@ -42,7 +42,7 @@ mod tests {
 
 	#[test]
 	fn test_brain() {
-		let words = vec!["this".to_owned(), "is".to_owned(), "sparta".to_owned()];
+		let words = "this is sparta!".to_owned();
 		let first_keypair = Brain(words.clone()).generate().unwrap();
 		let second_keypair = Brain(words.clone()).generate().unwrap();
 		assert_eq!(first_keypair.secret(), second_keypair.secret());
