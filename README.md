@@ -2,12 +2,12 @@
 
 [![Build Status][travis-image]][travis-url]
 
-[travis-image]: https://travis-ci.org/ethcore/ethabi.svg?branch=master
-[travis-url]: https://travis-ci.org/ethcore/ethabi
+[travis-image]: https://travis-ci.org/ethcore/ethkey.svg?branch=master
+[travis-url]: https://travis-ci.org/ethcore/ethkey
 
 Ethereum keys generator.
 
-[Documentation](http://ethcore.github.io/ethabi/ethabi/index.html)
+[Documentation](http://ethcore.github.io/ethkey/ethkey/index.html)
 
 ### Usage
 
@@ -48,7 +48,7 @@ public:  35f222d88b80151857a2877826d940104887376a94c1cbd2c8c7c192eb701df88a18a4e
 address: a8fa5dd30a87bb9e3288d604eb74949c515ab66e
 
 ```
-ethabi generate prefix ff 1000
+ethkey generate prefix ff 1000
 ```
 
 > secret:  2075b1d9c124ea673de7273758ed6de14802a9da8a73ceb74533d7c312ff6acd
