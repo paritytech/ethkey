@@ -5,7 +5,7 @@ extern crate ethkey;
 use std::{env, fmt};
 use std::num::ParseIntError;
 use docopt::Docopt;
-use rustc_serialize::hex::{FromHex, FromHexError};
+use rustc_serialize::hex::{ToHex, FromHex, FromHexError};
 use ethkey::{KeyPair, Random, Brain, Prefix, Error as EthkeyError, Generator};
 
 pub const USAGE: &'static str = r#"
@@ -13,13 +13,16 @@ Ethereum ABI coder.
   Copyright 2016 Ethcore (UK) Limited
 
 Usage:
-    ethkey generate random
-    ethkey generate prefix <prefix> <iterations>
-    ethkey generate brain <seed>
+    ethkey generate random [options]
+    ethkey generate prefix <prefix> <iterations> [options]
+    ethkey generate brain <seed> [options]
     ethkey [-h | --help]
 
 Options:
     -h, --help         Display this message and exit.
+    -s, --secret       Display only the secret.
+    -p, --public       Display only the public.
+    -a, --address      Display only the address.
 
 Commands:
     generate           Generates new ethereum key.
@@ -37,6 +40,9 @@ struct Args {
 	arg_prefix: String,
 	arg_iterations: String,
 	arg_seed: String,
+	flag_secret: bool,
+	flag_public: bool,
+	flag_address: bool,
 }
 
 #[derive(Debug)]
@@ -74,6 +80,27 @@ impl fmt::Display for Error {
 	}
 }
 
+enum DisplayMode {
+	KeyPair,
+	Secret,
+	Public,
+	Address,
+}
+
+impl DisplayMode {
+	fn new(args: &Args) -> Self {
+		if args.flag_secret {
+			DisplayMode::Secret
+		} else if args.flag_public {
+			DisplayMode::Public
+		} else if args.flag_address {
+			DisplayMode::Address
+		} else {
+			DisplayMode::KeyPair
+		}
+	}
+}
+
 fn main() {
 	match execute(env::args()) {
 		Ok(ok) => println!("{}", ok),
@@ -81,23 +108,34 @@ fn main() {
 	}
 }
 
-fn execute<S, I>(command: I) -> Result<KeyPair, Error> where I: IntoIterator<Item=S>, S: AsRef<str> {
+fn display(keypair: KeyPair, mode: DisplayMode) -> String {
+	match mode {
+		DisplayMode::KeyPair => format!("{}", keypair),
+		DisplayMode::Secret => format!("{}", keypair.secret().to_hex()),
+		DisplayMode::Public => format!("{}", keypair.public().to_hex()),
+		DisplayMode::Address => format!("{}", keypair.address().to_hex()),
+	}
+}
+
+fn execute<S, I>(command: I) -> Result<String, Error> where I: IntoIterator<Item=S>, S: AsRef<str> {
 	let args: Args = Docopt::new(USAGE)
 		.and_then(|d| d.argv(command).decode())
 		.unwrap_or_else(|e| e.exit());
 
 	return if args.cmd_generate {
-		 if args.cmd_random {
-			Random.generate().map_err(From::from)
+		let display_mode = DisplayMode::new(&args);
+		let keypair = if args.cmd_random {
+			Random.generate()
 		} else if args.cmd_prefix {
 			let prefix = try!(args.arg_prefix.from_hex());
 			let iterations = try!(usize::from_str_radix(&args.arg_iterations, 10));
-			Prefix::new(prefix, iterations).generate().map_err(From::from)
+			Prefix::new(prefix, iterations).generate()
 		} else if args.cmd_brain {
-			Brain::new(args.arg_seed).generate().map_err(From::from)
+			Brain::new(args.arg_seed).generate()
 		} else {
 			unreachable!();
-		}
+		};
+		Ok(display(try!(keypair), display_mode))
 	} else {
 		unreachable!();
 	}

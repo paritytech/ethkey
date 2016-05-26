@@ -16,13 +16,16 @@ Ethereum ABI coder.
   Copyright 2016 Ethcore (UK) Limited
 
 Usage:
-    ethkey generate random
-    ethkey generate prefix <prefix> <iterations>
-    ethkey generate brain <seed>
+    ethkey generate random [options]
+    ethkey generate prefix <prefix> <iterations> [options]
+    ethkey generate brain <seed> [options]
     ethkey [-h | --help]
 
 Options:
     -h, --help         Display this message and exit.
+    -s, --secret       Display only the secret.
+    -p, --public       Display only the public.
+    -a, --address      Display only the address.
 
 Commands:
     generate           Generates new ethereum key.
