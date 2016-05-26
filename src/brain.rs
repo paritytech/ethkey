@@ -4,6 +4,12 @@ use super::{KeyPair, Error, Generator};
 /// Simple brainwallet.
 pub struct Brain(String);
 
+impl Brain {
+	pub fn new(s: String) -> Self {
+		Brain(s)
+	}
+}
+
 impl Generator for Brain {
 	fn generate(self) -> Result<KeyPair, Error> {
 		let seed = self.0;

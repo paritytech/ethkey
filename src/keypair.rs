@@ -14,7 +14,7 @@ impl fmt::Display for KeyPair {
 	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
 		try!(writeln!(f, "secret:  {}", self.secret.to_hex()));
 		try!(writeln!(f, "public:  {}", self.public.to_hex()));
-		writeln!(f, "address: {}", self.address().to_hex())
+		write!(f, "address: {}", self.address().to_hex())
 	}
 }
 

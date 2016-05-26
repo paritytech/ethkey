@@ -13,6 +13,8 @@ pub enum Error {
 	InvalidMessage,
 	/// IO Error
 	Io(::std::io::Error),
+	/// Custom
+	Custom(String),
 }
 
 impl fmt::Display for Error {
@@ -23,6 +25,7 @@ impl fmt::Display for Error {
 			Error::InvalidSignature => "Invalid EC signature".into(),
 			Error::InvalidMessage => "Invalid AES message".into(),
 			Error::Io(ref err) => format!("I/O error: {}", err),
+			Error::Custom(ref s) => s.clone(),
 		};
 
 		f.write_fmt(format_args!("Crypto error ({})", msg))
