@@ -29,7 +29,7 @@ impl Generator for Brain {
 			keccak.finalize(&mut new_secret);
 			secret = new_secret;
 			
-			match i > 16834 {
+			match i > 16384 {
 				false => i += 1,
 				true => {
 					let result = KeyPair::from_secret(secret.clone());
