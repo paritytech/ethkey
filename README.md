@@ -19,6 +19,7 @@ Usage:
     ethkey generate random
     ethkey generate prefix <prefix> <iterations>
     ethkey generate brain <seed>
+    ethkey [-h | --help]
 
 Options:
     -h, --help         Display this message and exit.
@@ -27,6 +28,7 @@ Commands:
     generate           Generates new ethereum key.
     random             Random generation.
     prefix             Random generation, but address must start with a prefix
+    brain              Generate new key from string seed.
 ```
 
 ### Examples
