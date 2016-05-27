@@ -9,7 +9,7 @@ use rustc_serialize::hex::{ToHex, FromHex, FromHexError};
 use ethkey::{KeyPair, Random, Brain, Prefix, Error as EthkeyError, Generator};
 
 pub const USAGE: &'static str = r#"
-Ethereum ABI coder.
+Ethereum keys generator.
   Copyright 2016 Ethcore (UK) Limited
 
 Usage:

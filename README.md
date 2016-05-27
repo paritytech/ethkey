@@ -12,7 +12,7 @@ Ethereum keys generator.
 ### Usage
 
 ```
-Ethereum ABI coder.
+Ethereum keys generator.
   Copyright 2016 Ethcore (UK) Limited
 
 Usage:
