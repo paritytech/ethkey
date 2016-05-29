@@ -141,4 +141,54 @@ fn execute<S, I>(command: I) -> Result<String, Error> where I: IntoIterator<Item
 	}
 }
 
+#[cfg(test)]
+mod tests {
+	use super::execute;
 
+	#[test]
+	fn brain() {
+		let command = vec!["ethkey", "generate", "brain", "this is sparta"]
+			.into_iter()
+			.map(Into::into)
+			.collect::<Vec<String>>();
+
+		let expected = 
+"secret:  17d08f5fe8c77af811caa0c9a187e668ce3b74a99acc3f6d976f075fa8e0be55
+public:  689268c0ff57a20cd299fa60d3fb374862aff565b20b5f1767906a99e6e09f3ff04ca2b2a5cd22f62941db103c0356df1a8ed20ce322cab2483db67685afd124
+address: 26d1ec50b4e62c1d1a40d16e7cacc6a6580757d5".to_owned();
+		assert_eq!(execute(command).unwrap(), expected);
+	}
+
+	#[test]
+	fn secret() {
+		let command = vec!["ethkey", "generate", "brain", "this is sparta", "--secret"]
+			.into_iter()
+			.map(Into::into)
+			.collect::<Vec<String>>();
+
+		let expected = "17d08f5fe8c77af811caa0c9a187e668ce3b74a99acc3f6d976f075fa8e0be55".to_owned();
+		assert_eq!(execute(command).unwrap(), expected);
+	}
+
+	#[test]
+	fn public() {
+		let command = vec!["ethkey", "generate", "brain", "this is sparta", "--public"]
+			.into_iter()
+			.map(Into::into)
+			.collect::<Vec<String>>();
+
+		let expected = "689268c0ff57a20cd299fa60d3fb374862aff565b20b5f1767906a99e6e09f3ff04ca2b2a5cd22f62941db103c0356df1a8ed20ce322cab2483db67685afd124".to_owned();
+		assert_eq!(execute(command).unwrap(), expected);
+	}
+
+	#[test]
+	fn address() {
+		let command = vec!["ethkey", "generate", "brain", "this is sparta", "--address"]
+			.into_iter()
+			.map(Into::into)
+			.collect::<Vec<String>>();
+
+		let expected = "26d1ec50b4e62c1d1a40d16e7cacc6a6580757d5".to_owned();
+		assert_eq!(execute(command).unwrap(), expected);
+	}
+}
