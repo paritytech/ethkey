@@ -27,7 +27,7 @@ impl KeyPair {
 		let serialized = pub_key.serialize_vec(context, false);
 
 		let mut public = [0u8; 64];
-		public.clone_from_slice(&serialized[1..65]);
+		public.copy_from_slice(&serialized[1..65]);
 
 		let keypair = KeyPair {
 			secret: secret,
@@ -40,9 +40,10 @@ impl KeyPair {
 	pub fn from_keypair(sec: key::SecretKey, publ: key::PublicKey) -> Self {
 		let context = &SECP256K1;
 		let serialized = publ.serialize_vec(context, false);
-		let secret: Secret = unsafe { ::std::mem::transmute(sec) };
+		let mut secret = [0u8; 32];
+		secret.copy_from_slice(&sec[0..32]);
 		let mut public = [0u8; 64]; 
-		public.clone_from_slice(&serialized[1..65]);
+		public.copy_from_slice(&serialized[1..65]);
 
 		KeyPair {
 			secret: secret,
@@ -78,7 +79,7 @@ mod tests {
 	fn from_secret() {
 		let bytes = "a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65".from_hex().unwrap();
 		let mut secret = [0u8; 32];
-		secret.clone_from_slice(&bytes);
+		secret.copy_from_slice(&bytes);
 		let _ = KeyPair::from_secret(secret).unwrap();
 	}
 
