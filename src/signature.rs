@@ -1,8 +1,8 @@
 use std::ops::{Deref, DerefMut};
 use std::mem;
-use secp256k1::Message;
-use secp256k1::key::SecretKey;
-use {Secret, SECP256K1, Error};
+use secp256k1::{Message, RecoverableSignature, RecoveryId, Error as SecpError};
+use secp256k1::key::{SecretKey, PublicKey};
+use {Secret, Public, SECP256K1, Error};
 
 #[repr(C)]
 pub struct Signature {
@@ -59,4 +59,37 @@ pub fn sign(secret: &Secret, message: &[u8; 32]) -> Result<Signature, Error> {
 	signature.s.copy_from_slice(&data[32..64]);
 	signature.v = rec_id.to_i32() as u8;
 	Ok(signature)
+}
+
+pub fn verify(public: &Public, signature: &Signature, message: &[u8; 32]) -> Result<bool, Error> {
+	let context = &SECP256K1;
+	let rsig = try!(RecoverableSignature::from_compact(context, &signature[0..64], try!(RecoveryId::from_i32(signature[64] as i32))));
+	let sig = rsig.to_standard(context);
+
+	let pdata: [u8; 65] = {
+		let mut temp = [4u8; 65];
+		(&mut temp[1..65]).copy_from_slice(public);
+		temp
+	};
+
+	let publ = try!(PublicKey::from_slice(context, &pdata));
+	match context.verify(&try!(Message::from_slice(message)), &sig, &publ) {
+		Ok(_) => Ok(true),
+		Err(SecpError::IncorrectSignature) => Ok(false),
+		Err(x) => Err(Error::from(x))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use {Generator, Random};
+	use super::{sign, verify};
+
+	#[test]
+	fn sign_and_verify() {
+		let keypair = Random.generate().unwrap();
+		let message = [1u8; 32];
+		let signature = sign(keypair.secret(), &message).unwrap();
+		assert!(verify(keypair.public(), &signature, &message).unwrap());
+	}
 }

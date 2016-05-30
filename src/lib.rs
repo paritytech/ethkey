@@ -31,4 +31,4 @@ pub use self::error::Error;
 pub use self::keypair::KeyPair;
 pub use self::prefix::Prefix;
 pub use self::random::Random;
-pub use self::signature::{sign, Signature};
+pub use self::signature::{sign, verify, Signature};
