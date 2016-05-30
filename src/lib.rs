@@ -8,8 +8,9 @@ extern crate rustc_serialize;
 mod brain;
 mod error;
 mod keypair;
-mod random;
 mod prefix;
+mod random;
+mod signature;
 
 lazy_static! {
 	static ref SECP256K1: secp256k1::Secp256k1 = secp256k1::Secp256k1::new();
@@ -30,3 +31,4 @@ pub use self::error::Error;
 pub use self::keypair::KeyPair;
 pub use self::prefix::Prefix;
 pub use self::random::Random;
+pub use self::signature::{sign, Signature};
