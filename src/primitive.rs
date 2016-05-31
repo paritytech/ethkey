@@ -1,5 +1,5 @@
 use std::ops::{Deref, DerefMut};
-use std::{mem, fmt};
+use std::{mem, fmt, cmp};
 use std::str::FromStr;
 use rustc_serialize::hex::{ToHex, FromHex};
 use Error;
@@ -8,6 +8,7 @@ macro_rules! impl_primitive {
 	($name: ident, $size: expr, $err: expr) => {
 
 		#[repr(C)]
+		#[derive(Eq)]
 		pub struct $name([u8; $size]);
 
 		impl fmt::Debug for $name {
@@ -42,6 +43,22 @@ macro_rules! impl_primitive {
 				let self_ref: &[u8] = &self.0;
 				let other_ref: &[u8] = &other.0;
 				self_ref == other_ref
+			}
+		}
+
+		impl PartialOrd for $name {
+			fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+				let self_ref: &[u8] = &self.0;
+				let other_ref: &[u8] = &other.0;
+				self_ref.partial_cmp(other_ref)
+			}
+		}
+
+		impl Ord for $name {
+			fn cmp(&self, other: &Self) -> cmp::Ordering {
+				let self_ref: &[u8] = &self.0;
+				let other_ref: &[u8] = &other.0;
+				self_ref.cmp(other_ref)
 			}
 		}
 

@@ -1,6 +1,6 @@
 [root]
 name = "ethkey"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "docopt 0.6.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "eth-secp256k1 0.5.4 (git+https://github.com/ethcore/rust-secp256k1)",
