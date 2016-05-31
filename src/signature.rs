@@ -1,10 +1,10 @@
 use std::ops::{Deref, DerefMut};
 use std::{mem, fmt};
 use std::str::FromStr;
-use secp256k1::{Message, RecoverableSignature, RecoveryId, Error as SecpError};
+use secp256k1::{Message as SecpMessage, RecoverableSignature, RecoveryId, Error as SecpError};
 use secp256k1::key::{SecretKey, PublicKey};
 use rustc_serialize::hex::{ToHex, FromHex};
-use {Secret, Public, SECP256K1, Error};
+use {Secret, Public, SECP256K1, Error, Message};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -73,11 +73,11 @@ impl DerefMut for Signature {
 	}
 }
 
-pub fn sign(secret: &Secret, message: &[u8; 32]) -> Result<Signature, Error> {
+pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 	let context = &SECP256K1;
 	// no way to create from raw byte array.
 	let sec: &SecretKey = unsafe { mem::transmute(secret) };
-	let s = try!(context.sign_recoverable(&try!(Message::from_slice(message)), sec));
+	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(message.deref())), sec));
 	let (rec_id, data) = s.serialize_compact(context);
 	let mut signature = Signature::default();
 	signature.r.copy_from_slice(&data[0..32]);
@@ -87,19 +87,19 @@ pub fn sign(secret: &Secret, message: &[u8; 32]) -> Result<Signature, Error> {
 	Ok(signature)
 }
 
-pub fn verify(public: &Public, signature: &Signature, message: &[u8; 32]) -> Result<bool, Error> {
+pub fn verify(public: &Public, signature: &Signature, message: &Message) -> Result<bool, Error> {
 	let context = &SECP256K1;
 	let rsig = try!(RecoverableSignature::from_compact(context, &signature[0..64], try!(RecoveryId::from_i32(signature[64] as i32))));
 	let sig = rsig.to_standard(context);
 
 	let pdata: [u8; 65] = {
 		let mut temp = [4u8; 65];
-		(&mut temp[1..65]).copy_from_slice(public);
+		(&mut temp[1..65]).copy_from_slice(public.deref());
 		temp
 	};
 
 	let publ = try!(PublicKey::from_slice(context, &pdata));
-	match context.verify(&try!(Message::from_slice(message)), &sig, &publ) {
+	match context.verify(&try!(SecpMessage::from_slice(message.deref())), &sig, &publ) {
 		Ok(_) => Ok(true),
 		Err(SecpError::IncorrectSignature) => Ok(false),
 		Err(x) => Err(Error::from(x))
@@ -109,13 +109,13 @@ pub fn verify(public: &Public, signature: &Signature, message: &[u8; 32]) -> Res
 #[cfg(test)]
 mod tests {
 	use std::str::FromStr;
-	use {Generator, Random};
+	use {Generator, Random, Message};
 	use super::{sign, verify, Signature};
 
 	#[test]
 	fn signature_to_and_from_str() {
 		let keypair = Random.generate().unwrap();
-		let message = [1u8; 32];
+		let message = Message::default();
 		let signature = sign(keypair.secret(), &message).unwrap();
 		let string = format!("{}", signature);
 		let deserialized = Signature::from_str(&string).unwrap();
@@ -125,7 +125,7 @@ mod tests {
 	#[test]
 	fn sign_and_verify() {
 		let keypair = Random.generate().unwrap();
-		let message = [1u8; 32];
+		let message = Message::default();
 		let signature = sign(keypair.secret(), &message).unwrap();
 		assert!(verify(keypair.public(), &signature, &message).unwrap());
 	}

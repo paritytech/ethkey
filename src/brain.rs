@@ -1,5 +1,5 @@
 use keccak::Keccak256;
-use super::{KeyPair, Error, Generator};
+use super::{KeyPair, Error, Generator, Secret};
 
 /// Simple brainwallet.
 pub struct Brain(String);
@@ -22,7 +22,7 @@ impl Generator for Brain {
 			match i > 16384 {
 				false => i += 1,
 				true => {
-					let result = KeyPair::from_secret(secret.clone());
+					let result = KeyPair::from_secret(Secret::from(secret.clone()));
 					if result.is_ok() {
 						return result
 					}

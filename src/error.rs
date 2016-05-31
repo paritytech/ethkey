@@ -7,6 +7,8 @@ pub enum Error {
 	InvalidSecret,
 	/// Invalid public key
 	InvalidPublic,
+	/// Invalid address
+	InvalidAddress,
 	/// Invalid EC signature
 	InvalidSignature,
 	/// Invalid AES message
@@ -22,6 +24,7 @@ impl fmt::Display for Error {
 		let msg = match *self {
 			Error::InvalidSecret => "Invalid secret key".into(),
 			Error::InvalidPublic => "Invalid public key".into(),
+			Error::InvalidAddress => "Invalid address".into(),
 			Error::InvalidSignature => "Invalid EC signature".into(),
 			Error::InvalidMessage => "Invalid AES message".into(),
 			Error::Io(ref err) => format!("I/O error: {}", err),

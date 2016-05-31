@@ -1,7 +1,8 @@
 use std::fmt;
+use std::ops::Deref;
 use secp256k1::key;
-use tiny_keccak::Keccak;
 use rustc_serialize::hex::ToHex;
+use keccak::Keccak256;
 use super::{Secret, Public, Address, SECP256K1, Error};
 
 /// secp256k1 key pair
@@ -22,11 +23,11 @@ impl KeyPair {
 	/// Create a pair from secret key
 	pub fn from_secret(secret: Secret) -> Result<KeyPair, Error> {
 		let context = &SECP256K1;
-		let s: key::SecretKey = try!(key::SecretKey::from_slice(context, &secret));
+		let s: key::SecretKey = try!(key::SecretKey::from_slice(context, secret.deref()));
 		let pub_key = try!(key::PublicKey::from_secret_key(context, &s));
 		let serialized = pub_key.serialize_vec(context, false);
 
-		let mut public = [0u8; 64];
+		let mut public = Public::default();
 		public.copy_from_slice(&serialized[1..65]);
 
 		let keypair = KeyPair {
@@ -40,9 +41,9 @@ impl KeyPair {
 	pub fn from_keypair(sec: key::SecretKey, publ: key::PublicKey) -> Self {
 		let context = &SECP256K1;
 		let serialized = publ.serialize_vec(context, false);
-		let mut secret = [0u8; 32];
+		let mut secret = Secret::default();
 		secret.copy_from_slice(&sec[0..32]);
-		let mut public = [0u8; 64]; 
+		let mut public = Public::default();
 		public.copy_from_slice(&serialized[1..65]);
 
 		KeyPair {
@@ -60,11 +61,8 @@ impl KeyPair {
 	}
 
 	pub fn address(&self) -> Address {
-		let mut keccak = Keccak::new_keccak256();
-		keccak.update(&self.public);
-		let mut hash = [0u8; 32];
-		keccak.finalize(&mut hash);
-		let mut result = [0u8; 20];
+		let hash = self.public.keccak256();
+		let mut result = Address::default();
 		result.copy_from_slice(&hash[12..]);
 		result
 	}
@@ -72,14 +70,12 @@ impl KeyPair {
 
 #[cfg(test)]
 mod tests {
-	use rustc_serialize::hex::FromHex;
-	use KeyPair;
+	use std::str::FromStr;
+	use {KeyPair, Secret};
 
 	#[test]
 	fn from_secret() {
-		let bytes = "a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65".from_hex().unwrap();
-		let mut secret = [0u8; 32];
-		secret.copy_from_slice(&bytes);
+		let secret = Secret::from_str("a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65").unwrap();
 		let _ = KeyPair::from_secret(secret).unwrap();
 	}
 
@@ -89,9 +85,7 @@ mod tests {
 "secret:  a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65
 public:  8ce0db0b0359ffc5866ba61903cc2518c3675ef2cf380a7e54bde7ea20e6fa1ab45b7617346cd11b7610001ee6ae5b0155c41cad9527cbcdff44ec67848943a4
 address: 5b073e9233944b5e729e46d618f0d8edf3d9c34a".to_owned();
-		let bytes = "a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65".from_hex().unwrap();
-		let mut secret = [0u8; 32];
-		secret.clone_from_slice(&bytes);
+		let secret = Secret::from_str("a100df7a048e50ed308ea696dc600215098141cb391e9527329df289f9383f65").unwrap();
 		let kp = KeyPair::from_secret(secret).unwrap();
 		assert_eq!(format!("{}", kp), expected);
 	}

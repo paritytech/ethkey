@@ -10,16 +10,13 @@ mod error;
 mod keypair;
 mod keccak;
 mod prefix;
+mod primitive;
 mod random;
 mod signature;
 
 lazy_static! {
 	static ref SECP256K1: secp256k1::Secp256k1 = secp256k1::Secp256k1::new();
 }
-
-pub type Address = [u8; 20];
-pub type Secret  = [u8; 32];
-pub type Public  = [u8; 64];
 
 /// Generates new keypair.
 pub trait Generator {
@@ -30,6 +27,7 @@ pub trait Generator {
 pub use self::brain::Brain;
 pub use self::error::Error;
 pub use self::keypair::KeyPair;
+pub use self::primitive::{Secret, Public, Address, Message};
 pub use self::prefix::Prefix;
 pub use self::random::Random;
 pub use self::signature::{sign, verify, Signature};

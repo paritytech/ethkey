@@ -2,11 +2,12 @@ extern crate docopt;
 extern crate rustc_serialize;
 extern crate ethkey;
 
+use std::str::FromStr;
 use std::{env, fmt};
 use std::num::ParseIntError;
 use docopt::Docopt;
-use rustc_serialize::hex::{ToHex, FromHex, FromHexError};
-use ethkey::{KeyPair, Random, Brain, Prefix, Error as EthkeyError, Generator};
+use rustc_serialize::hex::{FromHex, FromHexError};
+use ethkey::{KeyPair, Random, Brain, Prefix, Error as EthkeyError, Generator, Secret, Message, Public, Signature, sign, verify};
 
 pub const USAGE: &'static str = r#"
 Ethereum keys generator.
@@ -16,6 +17,8 @@ Usage:
     ethkey generate random [options]
     ethkey generate prefix <prefix> <iterations> [options]
     ethkey generate brain <seed> [options]
+    ethkey sign <secret> <message>
+    ethkey verify <public> <signature> <message>
     ethkey [-h | --help]
 
 Options:
@@ -29,6 +32,8 @@ Commands:
     random             Random generation.
     prefix             Random generation, but address must start with a prefix
     brain              Generate new key from string seed.
+    sign               Sign message using secret.
+    verify             Verify signer of the signature.
 "#;
 
 #[derive(Debug, RustcDecodable)]
@@ -37,9 +42,15 @@ struct Args {
 	cmd_random: bool,
 	cmd_prefix: bool,
 	cmd_brain: bool,
+	cmd_sign: bool,
+	cmd_verify: bool,
 	arg_prefix: String,
 	arg_iterations: String,
 	arg_seed: String,
+	arg_secret: String,
+	arg_message: String,
+	arg_public: String,
+	arg_signature: String,
 	flag_secret: bool,
 	flag_public: bool,
 	flag_address: bool,
@@ -111,9 +122,9 @@ fn main() {
 fn display(keypair: KeyPair, mode: DisplayMode) -> String {
 	match mode {
 		DisplayMode::KeyPair => format!("{}", keypair),
-		DisplayMode::Secret => format!("{}", keypair.secret().to_hex()),
-		DisplayMode::Public => format!("{}", keypair.public().to_hex()),
-		DisplayMode::Address => format!("{}", keypair.address().to_hex()),
+		DisplayMode::Secret => format!("{}", keypair.secret()),
+		DisplayMode::Public => format!("{}", keypair.public()),
+		DisplayMode::Address => format!("{}", keypair.address()),
 	}
 }
 
@@ -136,6 +147,17 @@ fn execute<S, I>(command: I) -> Result<String, Error> where I: IntoIterator<Item
 			unreachable!();
 		};
 		Ok(display(try!(keypair), display_mode))
+	} else if args.cmd_sign {
+		let secret = try!(Secret::from_str(&args.arg_secret));
+		let message = try!(Message::from_str(&args.arg_message));
+		let signature = try!(sign(&secret, &message));
+		Ok(format!("{}", signature))
+	} else if args.cmd_verify {
+		let public = try!(Public::from_str(&args.arg_public));
+		let signature = try!(Signature::from_str(&args.arg_signature));
+		let message = try!(Message::from_str(&args.arg_message));
+		let ok = try!(verify(&public, &signature, &message));
+		Ok(format!("{}", ok))
 	} else {
 		unreachable!();
 	}
