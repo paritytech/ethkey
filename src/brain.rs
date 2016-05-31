@@ -1,4 +1,4 @@
-use tiny_keccak::Keccak;
+use keccak::Keccak256;
 use super::{KeyPair, Error, Generator};
 
 /// Simple brainwallet.
@@ -13,21 +13,11 @@ impl Brain {
 impl Generator for Brain {
 	fn generate(self) -> Result<KeyPair, Error> {
 		let seed = self.0;
-		let data: Vec<u8> = seed.bytes().collect();
-
-		let mut keccak = Keccak::new_keccak256();
-		keccak.update(&data);
-
-		let mut secret = [0u8; 32];
-		keccak.finalize(&mut secret);
+		let mut secret = seed.bytes().collect::<Vec<u8>>().keccak256();
 
 		let mut i = 0;
 		loop {
-			let mut keccak = Keccak::new_keccak256();
-			keccak.update(&secret);
-			let mut new_secret = [0u8; 32];
-			keccak.finalize(&mut new_secret);
-			secret = new_secret;
+			secret = secret.keccak256();
 			
 			match i > 16384 {
 				false => i += 1,

@@ -8,6 +8,7 @@ extern crate rustc_serialize;
 mod brain;
 mod error;
 mod keypair;
+mod keccak;
 mod prefix;
 mod random;
 mod signature;

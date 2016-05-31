@@ -1,14 +1,40 @@
 use std::ops::{Deref, DerefMut};
-use std::mem;
+use std::{mem, fmt};
+use std::str::FromStr;
 use secp256k1::{Message, RecoverableSignature, RecoveryId, Error as SecpError};
 use secp256k1::key::{SecretKey, PublicKey};
+use rustc_serialize::hex::{ToHex, FromHex};
 use {Secret, Public, SECP256K1, Error};
 
 #[repr(C)]
+#[derive(Debug, PartialEq)]
 pub struct Signature {
 	pub r: [u8; 32],
 	pub s: [u8; 32],
 	pub v: u8,
+}
+
+impl fmt::Display for Signature {
+	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+		write!(f, "{}", self.to_hex())
+	}
+}
+
+impl FromStr for Signature {
+	type Err = Error;
+	
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		match s.from_hex() {
+			Ok(ref hex) if hex.len() == 65 => {
+				let mut s = Signature::default();
+				s.r.copy_from_slice(&hex[0..32]);
+				s.s.copy_from_slice(&hex[32..64]);
+				s.v = hex[64];
+				Ok(s)
+			},
+			_ => Err(Error::InvalidSignature)
+		}
+	}
 }
 
 impl Default for Signature {
@@ -82,8 +108,19 @@ pub fn verify(public: &Public, signature: &Signature, message: &[u8; 32]) -> Res
 
 #[cfg(test)]
 mod tests {
+	use std::str::FromStr;
 	use {Generator, Random};
-	use super::{sign, verify};
+	use super::{sign, verify, Signature};
+
+	#[test]
+	fn signature_to_and_from_str() {
+		let keypair = Random.generate().unwrap();
+		let message = [1u8; 32];
+		let signature = sign(keypair.secret(), &message).unwrap();
+		let string = format!("{}", signature);
+		let deserialized = Signature::from_str(&string).unwrap();
+		assert_eq!(signature, deserialized);
+	}
 
 	#[test]
 	fn sign_and_verify() {
