@@ -14,6 +14,7 @@ Ethereum keys generator.
   Copyright 2016 Ethcore (UK) Limited
 
 Usage:
+    ethkey info <secret> [options]
     ethkey generate random [options]
     ethkey generate prefix <prefix> <iterations> [options]
     ethkey generate brain <seed> [options]
@@ -28,6 +29,7 @@ Options:
     -a, --address      Display only the address.
 
 Commands:
+    info               Display public and address of the secret.
     generate           Generates new ethereum key.
     random             Random generation.
     prefix             Random generation, but address must start with a prefix
@@ -38,6 +40,7 @@ Commands:
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
+	cmd_info: bool,
 	cmd_generate: bool,
 	cmd_random: bool,
 	cmd_prefix: bool,
@@ -133,7 +136,12 @@ fn execute<S, I>(command: I) -> Result<String, Error> where I: IntoIterator<Item
 		.and_then(|d| d.argv(command).decode())
 		.unwrap_or_else(|e| e.exit());
 
-	return if args.cmd_generate {
+	return if args.cmd_info {
+		let display_mode = DisplayMode::new(&args);
+		let secret = try!(Secret::from_str(&args.arg_secret));
+		let keypair = try!(KeyPair::from_secret(secret));
+		Ok(display(keypair, display_mode))
+	} else if args.cmd_generate {
 		let display_mode = DisplayMode::new(&args);
 		let keypair = if args.cmd_random {
 			Random.generate()
@@ -166,6 +174,20 @@ fn execute<S, I>(command: I) -> Result<String, Error> where I: IntoIterator<Item
 #[cfg(test)]
 mod tests {
 	use super::execute;
+
+	#[test]
+	fn info() {
+		let command = vec!["ethkey", "info", "17d08f5fe8c77af811caa0c9a187e668ce3b74a99acc3f6d976f075fa8e0be55"]
+			.into_iter()
+			.map(Into::into)
+			.collect::<Vec<String>>();
+
+		let expected = 
+"secret:  17d08f5fe8c77af811caa0c9a187e668ce3b74a99acc3f6d976f075fa8e0be55
+public:  689268c0ff57a20cd299fa60d3fb374862aff565b20b5f1767906a99e6e09f3ff04ca2b2a5cd22f62941db103c0356df1a8ed20ce322cab2483db67685afd124
+address: 26d1ec50b4e62c1d1a40d16e7cacc6a6580757d5".to_owned();
+		assert_eq!(execute(command).unwrap(), expected);
+	}
 
 	#[test]
 	fn brain() {
