@@ -19,6 +19,8 @@ Usage:
     ethkey generate random [options]
     ethkey generate prefix <prefix> <iterations> [options]
     ethkey generate brain <seed> [options]
+    ethkey sign <secret> <message>
+    ethkey verify <public> <signature> <message>
     ethkey [-h | --help]
 
 Options:
@@ -32,6 +34,8 @@ Commands:
     random             Random generation.
     prefix             Random generation, but address must start with a prefix
     brain              Generate new key from string seed.
+    sign               Sign message using secret.
+    verify             Verify signer of the signature.
 ```
 
 ### Examples
@@ -68,4 +72,34 @@ ethkey generate prefix ff 1000
 secret:  2075b1d9c124ea673de7273758ed6de14802a9da8a73ceb74533d7c312ff6acd
 public:  48dbce4508566a05509980a5dd1335599fcdac6f9858ba67018cecb9f09b8c4066dc4c18ae2722112fd4d9ac36d626793fffffb26071dfeb0c2300df994bd173
 address: fff7e25dff2aa60f61f9d98130c8646a01f31649
+```
+
+--
+
+```
+ethkey sign 17d08f5fe8c77af811caa0c9a187e668ce3b74a99acc3f6d976f075fa8e0be55 bd50b7370c3f96733b31744c6c45079e7ae6c8d299613246d28ebcef507ec987
+```
+
+```
+c1878cf60417151c766a712653d26ef350c8c75393458b7a9be715f053215af63dfd3b02c2ae65a8677917a8efa3172acb71cb90196e42106953ea0363c5aaf200
+```
+
+--
+
+```
+ethkey verify 689268c0ff57a20cd299fa60d3fb374862aff565b20b5f1767906a99e6e09f3ff04ca2b2a5cd22f62941db103c0356df1a8ed20ce322cab2483db67685afd124 c1878cf60417151c766a712653d26ef350c8c75393458b7a9be715f053215af63dfd3b02c2ae65a8677917a8efa3172acb71cb90196e42106953ea0363c5aaf200 bd50b7370c3f96733b31744c6c45079e7ae6c8d299613246d28ebcef507ec987
+```
+
+```
+true
+```
+
+--
+
+```
+ethkey verify 689268c0ff57a20cd299fa60d3fb374862aff565b20b5f1767906a99e6e09f3ff04ca2b2a5cd22f62941db103c0356df1a8ed20ce322cab2483db67685afd124 c1878cf60417151c766a712653d26ef350c8c75393458b7a9be715f053215af63dfd3b02c2ae65a8677917a8efa3172acb71cb90196e42106953ea0363c5aaf200 bd50b7370c3f96733b31744c6c45079e7ae6c8d299613246d28ebcef507ec986
+```
+
+```
+false
 ```
