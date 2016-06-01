@@ -17,4 +17,5 @@ cli = ["docopt"]
 
 [[bin]]
 name = "ethkey"
+path = "src/bin/main.rs"
 doc = false
