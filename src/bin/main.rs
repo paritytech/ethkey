@@ -3,7 +3,7 @@ extern crate rustc_serialize;
 extern crate ethkey;
 
 use std::str::FromStr;
-use std::{env, fmt};
+use std::{env, fmt, process};
 use std::num::ParseIntError;
 use docopt::Docopt;
 use rustc_serialize::hex::{FromHex, FromHexError};
@@ -118,7 +118,10 @@ impl DisplayMode {
 fn main() {
 	match execute(env::args()) {
 		Ok(ok) => println!("{}", ok),
-		Err(err) => println!("{}", err),
+		Err(err) => {
+			println!("{}", err);
+			process::exit(1);
+		},
 	}
 }
 
