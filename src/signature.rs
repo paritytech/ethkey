@@ -106,7 +106,7 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(message.deref())), sec));
 	let (rec_id, data) = s.serialize_compact(context);
 	let mut data_arr = [0; 65];
-	(&mut data_arr[0..64]).copy_from_slice(&data[0..64]);
+	data_arr[0..64].copy_from_slice(&data[0..64]);
 	data_arr[64] = rec_id.to_i32() as u8;
 	Ok(Signature(data_arr))
 }
@@ -118,7 +118,7 @@ pub fn verify(public: &Public, signature: &Signature, message: &Message) -> Resu
 
 	let pdata: [u8; 65] = {
 		let mut temp = [4u8; 65];
-		(&mut temp[1..65]).copy_from_slice(public.deref());
+		temp[1..65].copy_from_slice(public.deref());
 		temp
 	};
 
