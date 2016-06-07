@@ -7,7 +7,7 @@ use rustc_serialize::hex::{ToHex, FromHex};
 use {Secret, Public, SECP256K1, Error, Message};
 
 #[repr(C)]
-#[derive(Debug, PartialEq)]
+#[derive(Eq)]
 pub struct Signature([u8; 65]);
 
 impl Signature {
@@ -24,6 +24,25 @@ impl Signature {
 	/// Get the recovery byte.
 	pub fn v(&self) -> u8 {
 		self.0[64]
+	}
+}
+
+// manual implementation of debug since large arrays don't have trait impls.
+// remove when integer generics exist
+impl ::std::cmp::PartialEq for Signature {
+	fn eq(&self, other: &Self) -> bool {
+		&self.0[..] == &other.0[..]
+	}
+}
+
+// also manual for the same reason, but the pretty printing might be useful.
+impl fmt::Debug for Signature {
+	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+		f.debug_struct("Signature")
+			.field("r", &self.0[0..32].to_hex())
+			.field("s", &self.0[32..64].to_hex())
+			.field("v", &self.0[64..65].to_hex())
+		.finish()
 	}
 }
 
