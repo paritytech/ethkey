@@ -8,10 +8,23 @@ use {Secret, Public, SECP256K1, Error, Message};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
-pub struct Signature {
-	pub r: [u8; 32],
-	pub s: [u8; 32],
-	pub v: u8,
+pub struct Signature([u8; 65]);
+
+impl Signature {
+	/// Get a slice into the 'r' portion of the data.
+	pub fn r(&self) -> &[u8] {
+		&self.0[0..32]
+	}
+
+	/// Get a slice into the 's' portion of the data.
+	pub fn s(&self) -> &[u8] {
+		&self.0[32..64]
+	}
+
+	/// Get the recovery byte.
+	pub fn v(&self) -> u8 {
+		self.0[64]
+	}
 }
 
 impl fmt::Display for Signature {
@@ -22,15 +35,13 @@ impl fmt::Display for Signature {
 
 impl FromStr for Signature {
 	type Err = Error;
-	
+
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		match s.from_hex() {
 			Ok(ref hex) if hex.len() == 65 => {
-				let mut s = Signature::default();
-				s.r.copy_from_slice(&hex[0..32]);
-				s.s.copy_from_slice(&hex[32..64]);
-				s.v = hex[64];
-				Ok(s)
+				let mut data = [0; 65];
+				data.copy_from_slice(&hex[0..65]);
+				Ok(Signature(data))
 			},
 			_ => Err(Error::InvalidSignature)
 		}
@@ -39,23 +50,19 @@ impl FromStr for Signature {
 
 impl Default for Signature {
 	fn default() -> Self {
-		Signature {
-			r: [0u8; 32],
-			s: [0u8; 32],
-			v: 0u8,
-		}
+		Signature([0; 65])
 	}
 }
 
 impl From<[u8; 65]> for Signature {
 	fn from(s: [u8; 65]) -> Self {
-		unsafe { mem::transmute(s) }
+		Signature(s)
 	}
 }
 
 impl Into<[u8; 65]> for Signature {
 	fn into(self) -> [u8; 65] {
-		unsafe { mem::transmute(self) }
+		self.0
 	}
 }
 
@@ -63,13 +70,13 @@ impl Deref for Signature {
 	type Target = [u8; 65];
 
 	fn deref(&self) -> &Self::Target {
-		unsafe { mem::transmute(self) }
+		&self.0
 	}
 }
 
 impl DerefMut for Signature {
 	fn deref_mut(&mut self) -> &mut Self::Target {
-		unsafe { mem::transmute(self) }
+		&mut self.0
 	}
 }
 
@@ -79,12 +86,10 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 	let sec: &SecretKey = unsafe { mem::transmute(secret) };
 	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(message.deref())), sec));
 	let (rec_id, data) = s.serialize_compact(context);
-	let mut signature = Signature::default();
-	signature.r.copy_from_slice(&data[0..32]);
-	// no need to check if s is low, it alawys is
-	signature.s.copy_from_slice(&data[32..64]);
-	signature.v = rec_id.to_i32() as u8;
-	Ok(signature)
+	let mut data_arr = [0; 65];
+	(&mut data_arr[0..64]).copy_from_slice(&data[0..64]);
+	data_arr[64] = rec_id.to_i32() as u8;
+	Ok(Signature(data_arr))
 }
 
 pub fn verify(public: &Public, signature: &Signature, message: &Message) -> Result<bool, Error> {
