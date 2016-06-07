@@ -27,7 +27,7 @@ impl Signature {
 	}
 }
 
-// manual implementation of debug since large arrays don't have trait impls.
+// manual implementation large arrays don't have trait impls by default.
 // remove when integer generics exist
 impl ::std::cmp::PartialEq for Signature {
 	fn eq(&self, other: &Self) -> bool {
