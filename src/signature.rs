@@ -106,6 +106,8 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(message.deref())), sec));
 	let (rec_id, data) = s.serialize_compact(context);
 	let mut data_arr = [0; 65];
+
+	// no need to check if s is low, it always is
 	data_arr[0..64].copy_from_slice(&data[0..64]);
 	data_arr[64] = rec_id.to_i32() as u8;
 	Ok(Signature(data_arr))
