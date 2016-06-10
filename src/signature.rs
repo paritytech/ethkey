@@ -22,7 +22,7 @@ impl fmt::Display for Signature {
 
 impl FromStr for Signature {
 	type Err = Error;
-	
+
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		match s.from_hex() {
 			Ok(ref hex) if hex.len() == 65 => {
@@ -77,7 +77,7 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 	let context = &SECP256K1;
 	// no way to create from raw byte array.
 	let sec: &SecretKey = unsafe { mem::transmute(secret) };
-	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(message.deref())), sec));
+	let s = try!(context.sign_recoverable(&try!(SecpMessage::from_slice(&message[..])), sec));
 	let (rec_id, data) = s.serialize_compact(context);
 	let mut signature = Signature::default();
 	signature.r.copy_from_slice(&data[0..32]);
@@ -94,12 +94,12 @@ pub fn verify(public: &Public, signature: &Signature, message: &Message) -> Resu
 
 	let pdata: [u8; 65] = {
 		let mut temp = [4u8; 65];
-		(&mut temp[1..65]).copy_from_slice(public.deref());
+		(&mut temp[1..65]).copy_from_slice(&public[..]);
 		temp
 	};
 
 	let publ = try!(PublicKey::from_slice(context, &pdata));
-	match context.verify(&try!(SecpMessage::from_slice(message.deref())), &sig, &publ) {
+	match context.verify(&try!(SecpMessage::from_slice(&message[..])), &sig, &publ) {
 		Ok(_) => Ok(true),
 		Err(SecpError::IncorrectSignature) => Ok(false),
 		Err(x) => Err(Error::from(x))
