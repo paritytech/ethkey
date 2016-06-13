@@ -1,5 +1,4 @@
 use std::fmt;
-use std::ops::Deref;
 use secp256k1::key;
 use rustc_serialize::hex::ToHex;
 use keccak::Keccak256;
@@ -23,7 +22,7 @@ impl KeyPair {
 	/// Create a pair from secret key
 	pub fn from_secret(secret: Secret) -> Result<KeyPair, Error> {
 		let context = &SECP256K1;
-		let s: key::SecretKey = try!(key::SecretKey::from_slice(context, secret.deref()));
+		let s: key::SecretKey = try!(key::SecretKey::from_slice(context, &secret[..]));
 		let pub_key = try!(key::PublicKey::from_secret_key(context, &s));
 		let serialized = pub_key.serialize_vec(context, false);
 
