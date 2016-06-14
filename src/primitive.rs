@@ -1,5 +1,5 @@
 use std::ops::{Deref, DerefMut};
-use std::{mem, fmt, cmp};
+use std::{fmt, cmp};
 use std::str::FromStr;
 use rustc_serialize::hex::{ToHex, FromHex};
 use Error;
@@ -25,7 +25,7 @@ macro_rules! impl_primitive {
 
 		impl FromStr for $name {
 			type Err = Error;
-			
+
 			fn from_str(s: &str) -> Result<Self, Self::Err> {
 				match s.from_hex() {
 					Ok(ref hex) if hex.len() == $size => {
@@ -78,13 +78,13 @@ macro_rules! impl_primitive {
 
 		impl From<[u8; $size]> for $name {
 			fn from(s: [u8; $size]) -> Self {
-				unsafe { mem::transmute(s) }
+				$name(s)
 			}
 		}
 
 		impl Into<[u8; $size]> for $name {
 			fn into(self) -> [u8; $size] {
-				unsafe { mem::transmute(self) }
+				self.0
 			}
 		}
 
@@ -92,13 +92,13 @@ macro_rules! impl_primitive {
 			type Target = [u8; $size];
 
 			fn deref(&self) -> &Self::Target {
-				unsafe { mem::transmute(self) }
+				&self.0
 			}
 		}
 
 		impl DerefMut for $name {
 			fn deref_mut(&mut self) -> &mut Self::Target {
-				unsafe { mem::transmute(self) }
+				&mut self.0
 			}
 		}
 	}
