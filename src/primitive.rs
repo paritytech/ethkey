@@ -1,5 +1,5 @@
 use std::ops::{Deref, DerefMut};
-use std::{fmt, cmp};
+use std::{fmt, cmp, hash};
 use std::str::FromStr;
 use rustc_serialize::hex::{ToHex, FromHex};
 use Error;
@@ -85,6 +85,13 @@ macro_rules! impl_primitive {
 		impl Into<[u8; $size]> for $name {
 			fn into(self) -> [u8; $size] {
 				self.0
+			}
+		}
+
+		impl hash::Hash for $name {
+			fn hash<H>(&self, state: &mut H) where H: hash::Hasher {
+				let self_ref: &[u8] = &self.0;
+				self_ref.hash(state)
 			}
 		}
 
