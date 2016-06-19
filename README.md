@@ -22,7 +22,7 @@ Usage:
     ethkey generate brain <seed> [options]
     ethkey sign <secret> <message>
     ethkey verify public <public> <signature> <message>
-    ethkey verify address <public> <signature> <message>
+    ethkey verify address <address> <signature> <message>
     ethkey [-h | --help]
 
 Options:
