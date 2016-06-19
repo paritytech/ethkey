@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Prefix","Tries to find keypair with address starting with given prefix."]]});

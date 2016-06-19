@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Brain","Simple brainwallet."]]});
