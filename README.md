@@ -1,3 +1,8 @@
+# *DEPRECATED*
+
+Please use https://github.com/ethcore/parity/tree/master/ethkey
+
+
 # ethkey
 
 [![Build Status][travis-image]][travis-url]
